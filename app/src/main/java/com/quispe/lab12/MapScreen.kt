@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -30,7 +32,7 @@ import kotlinx.coroutines.delay
 fun rememberSmallMountainIcon(): BitmapDescriptor {
     val context = LocalContext.current
     return remember {
-        val originalBitmap = BitmapFactory.decodeResource(context.resources, R.drawable._1mountain)
+        val originalBitmap = BitmapFactory.decodeResource(context.resources, R.drawable._1montain)
         val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 80, 80, false)
         BitmapDescriptorFactory.fromBitmap(scaledBitmap)
     }
@@ -108,15 +110,46 @@ fun MapScreen() {
                 LatLng(-16.432566, -71.508853) // Último punto coincide con un polígono
             )
 
+            //Polilinea Simple
+            Polyline(
+                points = listOf(
+                    LatLng(-16.4, -71.56),
+                    LatLng(-16.45, -71.53)
+                ),
+                color = Color.Blue,
+                width = 6f
+            )
+
+            //Polilinea Punteada
             Polyline(
                 points = routePoints,
-                color = Color.Magenta,
+                color = Color.Red,
                 width = 8f,
                 jointType = JointType.ROUND,
                 pattern = listOf(Dash(20f), Gap(10f)),
                 clickable = true,
                 onClick = { /* Puedes mostrar un Snackbar, dialog, etc. */ }
             )
+
+            //Polilinea con Cambio de color
+            val colorState = remember { mutableStateOf(Color.Red) }
+
+            LaunchedEffect(Unit) {
+                while (true) {
+                    colorState.value = if (colorState.value == Color.Red) Color.Yellow else Color.Red
+                    delay(1000)
+                }
+            }
+
+            Polyline(
+                points = listOf(
+                    LatLng(-16.4, -71.56),
+                    LatLng(-16.45, -71.52)
+                ),
+                color = colorState.value,
+                width = 8f
+            )
+
 
             val mountainIcon = rememberSmallMountainIcon()
             // Añadir marcador en Arequipa Perú
