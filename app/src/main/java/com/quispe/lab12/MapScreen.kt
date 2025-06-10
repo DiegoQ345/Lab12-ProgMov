@@ -14,12 +14,16 @@ import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.Dash
+import com.google.android.gms.maps.model.Gap
+import com.google.android.gms.maps.model.JointType
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.Polygon
+import com.google.maps.android.compose.Polyline
 import kotlinx.coroutines.delay
 
 @Composable
@@ -96,6 +100,22 @@ fun MapScreen() {
                 strokeColor = Color.Red,
                 fillColor = Color.Blue,
                 strokeWidth = 5f
+            )
+            val routePoints = listOf(
+                ArequipaLocation,
+                LatLng(-16.42, -71.55),
+                LatLng(-16.43, -71.52),
+                LatLng(-16.432566, -71.508853) // Último punto coincide con un polígono
+            )
+
+            Polyline(
+                points = routePoints,
+                color = Color.Magenta,
+                width = 8f,
+                jointType = JointType.ROUND,
+                pattern = listOf(Dash(20f), Gap(10f)),
+                clickable = true,
+                onClick = { /* Puedes mostrar un Snackbar, dialog, etc. */ }
             )
 
             val mountainIcon = rememberSmallMountainIcon()
