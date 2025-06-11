@@ -3,7 +3,14 @@ package com.quispe.lab12
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -23,6 +31,8 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.Polyline
@@ -32,7 +42,7 @@ import kotlinx.coroutines.delay
 fun rememberSmallMountainIcon(): BitmapDescriptor {
     val context = LocalContext.current
     return remember {
-        val originalBitmap = BitmapFactory.decodeResource(context.resources, R.drawable._1montain)
+        val originalBitmap = BitmapFactory.decodeResource(context.resources, R.drawable._1mountain)
         val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 80, 80, false)
         BitmapDescriptorFactory.fromBitmap(scaledBitmap)
     }
@@ -41,124 +51,157 @@ fun rememberSmallMountainIcon(): BitmapDescriptor {
 
 @Composable
 fun MapScreen() {
-    val ArequipaLocation = LatLng(-16.4040102, -71.559611) // Arequipa, Perú
+    val ArequipaLocation = LatLng(-16.4040102, -71.559611)
     val cameraPositionState = rememberCameraPositionState {
-        position = com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(ArequipaLocation, 12f)
+        position =
+            com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(ArequipaLocation, 12f)
     }
-    LaunchedEffect(Unit) {
 
+    var expanded by remember { mutableStateOf(false) }
+    var selectedMapType by remember { mutableStateOf(MapType.NORMAL) }
+
+    val mapTypes = listOf(
+        "Normal" to MapType.NORMAL,
+        "Satellite" to MapType.SATELLITE,
+        "Terrain" to MapType.TERRAIN,
+        "Hybrid" to MapType.HYBRID
+    )
+
+    LaunchedEffect(Unit) {
         delay(1000)
-        // Animar a Hunter
         cameraPositionState.animate(
-            update = CameraUpdateFactory.newLatLngZoom(LatLng(-16.2520984, -71.6836503), 12f), // Mover a Yura
+            update = CameraUpdateFactory.newLatLngZoom(LatLng(-16.2520984, -71.6836503), 12f),
             durationMs = 5000
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        // Añadir GoogleMap al layout
-        GoogleMap(
-            modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-
-            val mallAventuraPolygon = listOf(
-                LatLng(-16.432292, -71.509145),
-                LatLng(-16.432757, -71.509626),
-                LatLng(-16.433013, -71.509310),
-                LatLng(-16.432566, -71.508853)
-            )
-
-
-            val parqueLambramaniPolygon = listOf(
-                LatLng(-16.422704, -71.530830),
-                LatLng(-16.422920, -71.531340),
-                LatLng(-16.423264, -71.531110),
-                LatLng(-16.423050, -71.530600)
-            )
-
-            val plazaDeArmasPolygon = listOf(
-                LatLng(-16.398866, -71.536961),
-                LatLng(-16.398744, -71.536529),
-                LatLng(-16.399178, -71.536289),
-                LatLng(-16.399299, -71.536721)
-            )
-
-            Polygon(
-                points = plazaDeArmasPolygon,
-                strokeColor = Color.Red,
-                fillColor = Color.Blue,
-                strokeWidth = 5f
-            )
-            Polygon(
-                points = parqueLambramaniPolygon,
-                strokeColor = Color.Red,
-                fillColor = Color.Blue,
-                strokeWidth = 5f
-            )
-            Polygon(
-                points = mallAventuraPolygon,
-                strokeColor = Color.Red,
-                fillColor = Color.Blue,
-                strokeWidth = 5f
-            )
-            val routePoints = listOf(
-                ArequipaLocation,
-                LatLng(-16.42, -71.55),
-                LatLng(-16.43, -71.52),
-                LatLng(-16.432566, -71.508853) // Último punto coincide con un polígono
-            )
-
-            //Polilinea Simple
-            Polyline(
-                points = listOf(
-                    LatLng(-16.4, -71.56),
-                    LatLng(-16.45, -71.53)
-                ),
-                color = Color.Blue,
-                width = 6f
-            )
-
-            //Polilinea Punteada
-            Polyline(
-                points = routePoints,
-                color = Color.Red,
-                width = 8f,
-                jointType = JointType.ROUND,
-                pattern = listOf(Dash(20f), Gap(10f)),
-                clickable = true,
-                onClick = { /* Puedes mostrar un Snackbar, dialog, etc. */ }
-            )
-
-            //Polilinea con Cambio de color
-            val colorState = remember { mutableStateOf(Color.Red) }
-
-            LaunchedEffect(Unit) {
-                while (true) {
-                    colorState.value = if (colorState.value == Color.Red) Color.Yellow else Color.Red
-                    delay(1000)
+            Button(onClick = { expanded = true }) {
+                Text("Tipo de Mapa: ${mapTypes.first { it.second == selectedMapType }.first}")
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                mapTypes.forEach { (label, type) ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            selectedMapType = type
+                            expanded = false
+                        }
+                    )
                 }
             }
+        }
 
-            Polyline(
-                points = listOf(
-                    LatLng(-16.4, -71.56),
-                    LatLng(-16.45, -71.52)
-                ),
-                color = colorState.value,
-                width = 8f
-            )
+        Box(modifier = Modifier.fillMaxSize()) {
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                properties = MapProperties(mapType = selectedMapType)
+            ) {
+
+                val mallAventuraPolygon = listOf(
+                    LatLng(-16.432292, -71.509145),
+                    LatLng(-16.432757, -71.509626),
+                    LatLng(-16.433013, -71.509310),
+                    LatLng(-16.432566, -71.508853)
+                )
 
 
-            val mountainIcon = rememberSmallMountainIcon()
-            // Añadir marcador en Arequipa Perú
-            Marker(
-                state = rememberMarkerState(position = ArequipaLocation),
-                icon = mountainIcon,
-                title = "Arequipa, Perú"
-            )
+                val parqueLambramaniPolygon = listOf(
+                    LatLng(-16.422704, -71.530830),
+                    LatLng(-16.422920, -71.531340),
+                    LatLng(-16.423264, -71.531110),
+                    LatLng(-16.423050, -71.530600)
+                )
 
+                val plazaDeArmasPolygon = listOf(
+                    LatLng(-16.398866, -71.536961),
+                    LatLng(-16.398744, -71.536529),
+                    LatLng(-16.399178, -71.536289),
+                    LatLng(-16.399299, -71.536721)
+                )
+
+                Polygon(
+                    points = plazaDeArmasPolygon,
+                    strokeColor = Color.Red,
+                    fillColor = Color.Blue,
+                    strokeWidth = 5f
+                )
+                Polygon(
+                    points = parqueLambramaniPolygon,
+                    strokeColor = Color.Red,
+                    fillColor = Color.Blue,
+                    strokeWidth = 5f
+                )
+                Polygon(
+                    points = mallAventuraPolygon,
+                    strokeColor = Color.Red,
+                    fillColor = Color.Blue,
+                    strokeWidth = 5f
+                )
+                val routePoints = listOf(
+                    ArequipaLocation,
+                    LatLng(-16.42, -71.55),
+                    LatLng(-16.43, -71.52),
+                    LatLng(-16.432566, -71.508853) // Último punto coincide con un polígono
+                )
+
+                //Polilinea Simple
+                Polyline(
+                    points = listOf(
+                        LatLng(-16.4, -71.56),
+                        LatLng(-16.45, -71.53)
+                    ),
+                    color = Color.Blue,
+                    width = 6f
+                )
+
+                //Polilinea Punteada
+                Polyline(
+                    points = routePoints,
+                    color = Color.Red,
+                    width = 8f,
+                    jointType = JointType.ROUND,
+                    pattern = listOf(Dash(20f), Gap(10f)),
+                    clickable = true,
+                    onClick = { /* Puedes mostrar un Snackbar, dialog, etc. */ }
+                )
+
+                //Polilinea con Cambio de color
+                val colorState = remember { mutableStateOf(Color.Red) }
+
+                LaunchedEffect(Unit) {
+                    while (true) {
+                        colorState.value =
+                            if (colorState.value == Color.Red) Color.Yellow else Color.Red
+                        delay(1000)
+                    }
+                }
+
+                Polyline(
+                    points = listOf(
+                        LatLng(-16.4, -71.56),
+                        LatLng(-16.45, -71.52)
+                    ),
+                    color = colorState.value,
+                    width = 8f
+                )
+
+
+                val mountainIcon = rememberSmallMountainIcon()
+                // Añadir marcador en Arequipa Perú
+                Marker(
+                    state = rememberMarkerState(position = ArequipaLocation),
+                    icon = mountainIcon,
+                    title = "Arequipa, Perú"
+                )
+
+            }
         }
     }
 }
